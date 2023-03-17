@@ -1,0 +1,43 @@
+### Bloop ###
+.bloop/
+
+
+### Metals ###
+.metals/
+metals.sbt
+project/**/metals.sbt
+
+### SBT ###
+# Simple Build Tool
+# http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
+
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+project/local-plugins.sbt
+.ensime
+.ensime_cache/
+.sbt-scripted/
+local.sbt
+.history
+.cache
+.lib/
+.bsp
+
+### Scala ###
+*.class
+*.log
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# IDEA
+.idea
+.idea_modules
+/.worksheet/

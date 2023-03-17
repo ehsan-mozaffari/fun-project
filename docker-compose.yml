@@ -1,0 +1,47 @@
+version: '3.9'
+
+volumes:
+  postgres-data: # named volumes can be managed easier using docker-compose
+
+#configs:
+#  kamailio_conf:
+#    file: ./config/sip/kamailio/Kamailio.cfg
+#  postgres_env:
+#    file: config/db/postgres/Postgres.env # configure postgres
+
+
+
+services:
+  ######################## Postgres ###########################
+  postgres:
+    image: "postgres:15.2-alpine3.17" # use 15.2 official postgres version on latest version of alpine linux
+    container_name: "database-postgres"
+    env_file:
+      - config/db/postgres/Postgres.env # See all the environment variables of postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/ # persist data even if container shuts down
+
+  ######################## Kamailio ###########################
+#  kamailio:
+#    image: "kamailio:5.5.6-bullseye"
+#    container_name: "sip-kamailio"
+#    depends_on:
+#      - postgres
+#    env_file:
+#      - ./config/sip/kamailio/Kamailio.env
+#    configs:
+#      - source: ./config/sip/kamailio/Kamailio.cfg
+#        target: /etc/kamailio/kamailio.cfg
+#    ports:
+#      - "5060:5060"
+#      - "5060:5060/udp"
+
+
+
