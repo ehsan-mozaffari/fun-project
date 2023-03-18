@@ -1,6 +1,9 @@
 FROM debian:bullseye-20230227
+
 CMD ["bash"]
+
 LABEL maintainer="Ehsan Mozaffari <Ehsan.Mozaffari@yahoo.com>"
+
 ENV REFRESHED_AT=2023-03-18
 
 RUN rm -rf /var/lib/apt/lists/* && \
@@ -12,6 +15,7 @@ RUN rm -rf /var/lib/apt/lists/* && \
 RUN echo "deb http://deb.kamailio.org/kamailio55 bullseye main" > /etc/apt/sources.list.d/kamailio.list # buildkit
 
 RUN wget -O- http://deb.kamailio.org/kamailiodebkey.gpg | apt-key add - # buildkit
+RUN #wget -O- http://deb.kamailio.org/kamailiodebkey.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/kamailio.gpg # buildkit
 
 ENV KAMAILIO_VERSION=5.5.6+bpo11
 
@@ -63,7 +67,7 @@ RUN apt-get update && \
         kamailio-xml-modules=${KAMAILIO_VERSION} \
         kamailio-xmpp-modules=${KAMAILIO_VERSION} # buildkit
 
-VOLUME [/etc/kamailio]
+VOLUME ["/etc/kamailio"]
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* # clean up
 
@@ -71,4 +75,4 @@ ENV SHM_MEMORY=64
 
 ENV PKG_MEMORY=8
 
-ENTRYPOINT ["/bin/sh" "-c" "kamailio -DD -E -m ${SHM_MEMORY} -M ${PKG_MEMORY}"]
+ENTRYPOINT ["/bin/sh","-c","kamailio -DD -E -m ${SHM_MEMORY} -M ${PKG_MEMORY}"]

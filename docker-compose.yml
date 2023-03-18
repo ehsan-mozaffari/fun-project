@@ -34,7 +34,7 @@ services:
     container_name: "sip-kamailio"
     build:
       context: .
-      dockerfile: docker/Dockerfile.sip.kamailio
+      dockerfile: docker/kamailio/Dockerfile
 #    depends_on:
 #      - postgres
     env_file:
