@@ -2,6 +2,7 @@ version: '3.9'
 
 volumes:
   postgres-data: # named volumes can be managed easier using docker-compose
+  mysql-data: # named volumes can be managed easier using docker-compose
 
 #configs:
 #  kamailio_conf:
@@ -28,26 +29,45 @@ services:
 #    volumes:
 #      - postgres-data:/var/lib/postgresql/data/ # persist data even if container shuts down
 
+  ######################## MySQL ###########################
+  db:
+    image: "mysql:8.0.32-oracle"
+    container_name: "database-mysql"
+    env_file:
+      - config/db/mysql/MySQL.env # See all the environment variables
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mysql-data:/var/lib/mysql # persist data even if container shuts down
   ######################## Kamailio ###########################
   kamailio:
 #    image: "kamailio:5.5.6-bullseye"
     container_name: "sip-kamailio"
+#    command:
+#      - kamdbctl create
     build:
       context: .
       dockerfile: docker/kamailio/Dockerfile
-#    depends_on:
-#      - postgres
+    depends_on:
+      db:
+        condition: service_healthy
     env_file:
       - config/sip/kamailio/Kamailio.env
-#    configs:
-#      - source: ./config/sip/kamailio/Kamailio.cfg
-#        target: /etc/kamailio/kamailio.cfg
     ports:
       - "5060:5060"
       - "5060:5060/udp"
-#    volumes:
-#      - config/sip/Kamailio.cfg:/etc/kamailio/kamailio.cfg
-#      - conf/kamctlrc:/etc/kamailio/kamctlrc
+    volumes:
+#      - type: bind
+#        source: "./config/sip/kamailio/Kamctlrc"
+#        target: "/etc/kamailio/kamctlrc"
+      - type: bind
+        source: "./config/sip/kamailio/Kamailio.cfg"
+        target: "/etc/kamailio/kamailio.cfg"
 
 
 

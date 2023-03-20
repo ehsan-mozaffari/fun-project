@@ -5,19 +5,20 @@ CMD ["bash"]
 LABEL maintainer="Ehsan Mozaffari <Ehsan.Mozaffari@yahoo.com>"
 
 ENV REFRESHED_AT=2023-03-18
+ENV KAMAILIO_VERSION=5.5.6+bpo11
+ENV SHM_MEMORY=64
+ENV PKG_MEMORY=8
 
 RUN rm -rf /var/lib/apt/lists/* && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive \
-    apt-get install -qq --assume-yes gnupg wget sngrep # buildkit and sip track app
+    apt-get install -qq --assume-yes gnupg wget gpg sngrep iputils-ping net-tools # buildkit and sip track app
 
 
 RUN echo "deb http://deb.kamailio.org/kamailio55 bullseye main" > /etc/apt/sources.list.d/kamailio.list # buildkit
 
 RUN wget -O- http://deb.kamailio.org/kamailiodebkey.gpg | apt-key add - # buildkit
-RUN #wget -O- http://deb.kamailio.org/kamailiodebkey.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/kamailio.gpg # buildkit
-
-ENV KAMAILIO_VERSION=5.5.6+bpo11
+#RUN wget -O- http://deb.kamailio.org/kamailiodebkey.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/kamailio.gpg # buildkit
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -qq --assume-yes \
@@ -71,8 +72,21 @@ VOLUME ["/etc/kamailio"]
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* # clean up
 
-ENV SHM_MEMORY=64
+RUN echo "SIP_DOMAIN=sip.wesupported.com" >> /etc/kamailio/kamctlrc
+RUN echo "DBENGINE=MYSQL" >> /etc/kamailio/kamctlrc
+RUN echo "DBHOST=db" >> /etc/kamailio/kamctlrc
+RUN echo "DBPORT=3306" >> /etc/kamailio/kamctlrc
+RUN echo "DBNAME=kamailio" >> /etc/kamailio/kamctlrc
+RUN echo "DBROOTUSER=root" >> /etc/kamailio/kamctlrc
+RUN echo "DBROOTPW=dbrootpw" >> /etc/kamailio/kamctlrc
+RUN echo "DBINITASK=no" >> /etc/kamailio/kamctlrc
+RUN echo "CHARSET="utf32"" >> /etc/kamailio/kamctlrc
+RUN echo "INSTALL_EXTRA_TABLES=yes" >> /etc/kamailio/kamctlrc
+RUN echo "INSTALL_DBUID_TABLES=yes" >> /etc/kamailio/kamctlrc
+RUN echo "STORE_PLAINTEXT_PW=1" >> /etc/kamailio/kamctlrc
 
-ENV PKG_MEMORY=8
+#RUN for i in a; do echo "$i"; done
+
+#RUN kamdbctl create # Table creation
 
 ENTRYPOINT ["/bin/sh","-c","kamailio -DD -E -m ${SHM_MEMORY} -M ${PKG_MEMORY}"]
