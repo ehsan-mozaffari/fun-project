@@ -8,4 +8,7 @@
 [] add homer 7
 
 if you changed the Dockerfile you have to run this : docker-compose up --build
+
+
+docker system prune -f && docker volume prune -f
 ## What I learnt
