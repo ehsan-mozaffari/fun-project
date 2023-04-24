@@ -1,8 +1,17 @@
 version: '3.9'
 
-volumes:
-  postgres-data: # named volumes can be managed easier using docker-compose
-  mysql-data: # named volumes can be managed easier using docker-compose
+volumes: # named volumes can be managed easier using docker-compose
+  mysql-volume:
+  postgres-volume:
+  kamailio-volume:
+
+networks:
+  bridge-network:
+    driver: bridge
+  host-network:
+    driver: host
+  macvlan-network:
+    driver: macvlan
 
 #configs:
 #  kamailio_conf:
@@ -13,51 +22,38 @@ volumes:
 
 
 services:
-  ######################## Postgres ###########################
-#  postgres:
-#    image: "postgres:15.2-alpine3.17" # use 15.2 official postgres version on latest version of alpine linux
-#    container_name: "database-postgres"
-#    env_file:
-#      - config/db/postgres/Postgres.env # See all the environment variables of postgres
-#    ports:
-#      - "5432:5432"
-#    healthcheck:
-#      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
-#    volumes:
-#      - postgres-data:/var/lib/postgresql/data/ # persist data even if container shuts down
-
   ######################## MySQL ###########################
-  db:
+  mysql-service:
     image: "mysql:8.0.32-oracle"
-    container_name: "database-mysql"
+    container_name: "mysql-container"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     env_file:
-      - config/db/mysql/MySQL.env # See all the environment variables
+      - mysql/MySQL.env # See all the environment variables
     ports:
       - "3306:3306"
+    volumes:
+      - mysql-volume:/var/lib/mysql # persist data even if container shuts down
+    networks:
+      - bridge-network
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    volumes:
-      - mysql-data:/var/lib/mysql # persist data even if container shuts down
   ######################## Kamailio ###########################
-  kamailio:
+  kamailio: #https://www.slideshare.net/pvisintin/kamailio-with-docker-and-kubernetes
 #    image: "kamailio:5.5.6-bullseye"
-    container_name: "sip-kamailio"
+    container_name: "kamailio-container"
 #    command:
 #      - kamdbctl create
     build:
       context: .
-      dockerfile: docker/kamailio/Dockerfile
+      dockerfile: docker/Kamailio.Dockerfile
     depends_on:
       db:
         condition: service_healthy
     env_file:
-      - config/sip/kamailio/Kamailio.env
+      - kamailio/Kamailio.env
     ports:
       - "5060:5060"
       - "5060:5060/udp"
@@ -66,8 +62,12 @@ services:
 #        source: "./config/sip/kamailio/Kamctlrc"
 #        target: "/etc/kamailio/kamctlrc"
       - type: bind
-        source: "./config/sip/kamailio/Kamailio.cfg"
+        source: "./kamailio/Kamailio.cfg"
         target: "/etc/kamailio/kamailio.cfg"
+        consistency: consistent
+
+    networks:
+      - host-network
 
 
 
